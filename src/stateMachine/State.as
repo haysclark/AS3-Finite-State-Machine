@@ -7,7 +7,7 @@ package stateMachine
 		//----------------------------------
 		public static const NO_ENTER:IEnter = new NoopEnter();
 		public static const NO_EXIT:IExit = new NoopExit();
-		public static const NO_PARENT:State = new NoParentState();
+		public static const NO_PARENT:IState = new NoParentState(null);
 		
 		public static const WILDCARD:String = "*";
 		
