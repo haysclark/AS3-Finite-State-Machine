@@ -7,7 +7,7 @@ package stateMachine
 		//----------------------------------
 		public static const NO_ENTER:IEnter = new NoopEnter();
 		public static const NO_EXIT:IExit = new NoopExit();
-		public static const NO_PARENT:IState = new NoParentState(null);
+		public static const NO_PARENT:IState = null; // new NoParentState(null);
 		
 		public static const WILDCARD:String = "*";
 		
@@ -38,8 +38,9 @@ package stateMachine
 			if (!_from) {
 				_from = WILDCARD;
 			}
-			_enter = stateData.enter;
-			_exit = stateData.exit;
+			
+			_enter = (stateData.enter) ? stateData.enter : NO_ENTER;
+			_exit = (stateData.exit) ? stateData.exit : NO_EXIT;
 			
 			_parentName = stateData.parent;
 			children = [];

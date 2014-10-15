@@ -1,10 +1,21 @@
 package stateMachine
 {
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.events.IEventDispatcher;
 	import flash.utils.Dictionary;
 	
-	public class StateMachine extends EventDispatcher
+	public class StateMachine implements IEventDispatcher
 	{
+		//----------------------------------
+		//  CONSTS
+		//----------------------------------
+		public static const NO_STATE:String = "no state";
+		public static const UNKNOWN_STATE:IState = new UnknownState("unknown.state");
+		
+		//----------------------------------
+		//  vars
+		//----------------------------------
 		public var id:String
 		/* @private */
 		public var parentState:IState;
@@ -13,11 +24,12 @@ package stateMachine
 		/* @private */
 		public var path:Array;
 		/* @private */
-		private var _state:String;
+		private var _state:String = NO_STATE;
 		/* @private */
 		private var _states:Dictionary;
-		/* @private */
-		private var _outEvent:StateMachineEvent;
+		
+		//
+		private var _dispatcher:IEventDispatcher;
 		
 		/**
 		 * Creates a generic StateMachine. Available states can be set with addState and initial state can
@@ -55,6 +67,7 @@ package stateMachine
 		 */
 		public function StateMachine() {
 			_states = new Dictionary();
+			_dispatcher = new EventDispatcher();
 		}
 		
 		/**
@@ -78,28 +91,32 @@ package stateMachine
 		 * @param stateName	The name of the State
 		 **/
 		public function set initialState(stateName:String):void {
-			if (_state == null && stateName in _states) {
+			if (_state == NO_STATE && stateName in _states) {
 				_state = stateName;
 				
-				var _callbackEvent:StateMachineEvent = new StateMachineEvent(StateMachineEvent.ENTER_CALLBACK);
-				_callbackEvent.toState = stateName;
+				var callbackEvent:StateMachineEvent = StateMachineEvent.enterCallback(stateName);
 				
+				//Todo(Hays) Not under test
+				// Some Root state logic?
 				if (_states[_state].root) {
 					parentStates = _states[_state].parents
 					for (var j:int = _states[_state].parents.length - 1; j >= 0; j--) {
-						if (parentStates[j].enter) {
-							_callbackEvent.currentState = parentStates[j].name
-							parentStates[j].enter.call(null, _callbackEvent)
-						}
+						//if (parentStates[j].enter) {
+							callbackEvent.currentState = parentStates[j].name
+							IState(parentStates[j]).enter.enter(callbackEvent)
+						//}
 					}
 				}
+				//Todo(Hays) End Not under test
 				
-				if (_states[_state].enter) {
-					_callbackEvent.currentState = _state
-					_states[_state].enter.call(null, _callbackEvent)
-				}
-				_outEvent = new StateMachineEvent(StateMachineEvent.TRANSITION_COMPLETE);
-				_outEvent.toState = stateName;
+				// Call state enter handler, no null check required due to null pattern
+				callbackEvent.currentState = _state;
+				
+				// Todo: this logic can be likely handled when you change the currentState.
+				IState(_states[_state]).enter.enter(callbackEvent);
+				
+				// dispatch Transition Complete
+				var _outEvent:StateMachineEvent = StateMachineEvent.transitionComplete(stateName);
 				dispatchEvent(_outEvent);
 			}
 		}
@@ -108,20 +125,25 @@ package stateMachine
 		 *	Getters for the current state and for the Dictionary of states
 		 */
 		public function get state():String {
-			return _states[_state];
+			//return _states[_state];
+			return _state;
 		}
 		
+		//seems dangerous
 		public function get states():Dictionary {
 			return _states;
 		}
 		
+		public function hasStateByName(name:String):Boolean {
+			return (_states[name] != undefined);
+		}
+		
 		public function getStateByName(name:String):IState {
-			for each ( var s:IState in _states ) {
-				if ( s.name == name )
-					return s;
-			}
-			
-			return null;
+			//for each ( var s:IState in _states ) {
+			//	if ( s.name == name )
+			//		return s;
+			//}
+			return hasStateByName(state) ? _states[name] : UNKNOWN_STATE;
 		}
 		
 		/**
@@ -185,11 +207,11 @@ package stateMachine
 			if (!canChangeStateTo(stateTo))
 			{
 				trace("[StateMachine]", id, "Transition to " + stateTo + " denied");
-				_outEvent = new StateMachineEvent(StateMachineEvent.TRANSITION_DENIED);
-				_outEvent.fromState = _state;
-				_outEvent.toState = stateTo;
-				_outEvent.allowedStates = _states[stateTo].from;
-				dispatchEvent(_outEvent);
+				var outEvent:StateMachineEvent = new StateMachineEvent(StateMachineEvent.TRANSITION_DENIED);
+				outEvent.fromState = _state;
+				outEvent.toState = stateTo;
+				outEvent.allowedStates = _states[stateTo].from;
+				dispatchEvent(outEvent);
 				return;
 			}
 			
@@ -247,10 +269,37 @@ package stateMachine
 			trace("[StateMachine]", id, "State Changed to " + _state);
 			
 			// Transition is complete. dispatch TRANSITION_COMPLETE
-			_outEvent = new StateMachineEvent(StateMachineEvent.TRANSITION_COMPLETE);
-			_outEvent.fromState = oldState ;
-			_outEvent.toState = stateTo;
-			dispatchEvent(_outEvent);
+			outEvent = new StateMachineEvent(StateMachineEvent.TRANSITION_COMPLETE);
+			outEvent.fromState = oldState ;
+			outEvent.toState = stateTo;
+			dispatchEvent(outEvent);
+		}
+		
+		public function setDispatcher(dispatcher:IEventDispatcher):void {
+			_dispatcher = dispatcher;
+		}
+		
+		//----------------------------------
+		//  IEventDispatcher
+		//----------------------------------
+		public function addEventListener(type:String, listener:Function, useCapture:Boolean = false, priority:int = 0, useWeakReference:Boolean = false):void {
+			_dispatcher.addEventListener(type, listener, useCapture, priority, useWeakReference);
+		}
+		
+		public function removeEventListener(type:String, listener:Function, useCapture:Boolean = false):void {
+			_dispatcher.removeEventListener(type, listener, useCapture);
+		}
+		
+		public function dispatchEvent(event:Event):Boolean {
+			return _dispatcher.dispatchEvent(event);
+		}
+		
+		public function hasEventListener(type:String):Boolean {
+			return _dispatcher.hasEventListener(type);
+		}
+		
+		public function willTrigger(type:String):Boolean {
+			return _dispatcher.willTrigger(type);
 		}
 	}
 }
