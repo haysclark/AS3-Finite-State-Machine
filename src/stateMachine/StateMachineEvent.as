@@ -7,6 +7,15 @@ package stateMachine
 		//----------------------------------
 		//  Type
 		//----------------------------------
+		public static const EXIT_CALLBACK:String = "exit";
+		public static function exitCallback(fromState:String, toState:String, currentState:String):StateMachineEvent {
+			var event:StateMachineEvent = new StateMachineEvent(EXIT_CALLBACK);
+			event.fromState = fromState;
+			event.toState = toState;
+			event.currentState = currentState;
+			return event;	
+		}
+		
 		public static const ENTER_CALLBACK:String = "enter";
 		public static function enterCallback(stateName:String):StateMachineEvent {
 			var event:StateMachineEvent = new StateMachineEvent(ENTER_CALLBACK);
@@ -14,7 +23,14 @@ package stateMachine
 			return event;
 		}
 		
-		public static const EXIT_CALLBACK:String = "exit";
+		public static const TRANSITION_DENIED:String = "transition denied";
+		public static function transitionDenied(fromState:String, toState:String, allowedStates:Object):StateMachineEvent {
+			var event:StateMachineEvent = new StateMachineEvent(ENTER_CALLBACK);
+			event.fromState = fromState;
+			event.toState = toState;
+			event.allowedStates = allowedStates;
+			return event;
+		}
 		
 		public static const TRANSITION_COMPLETE:String = "transition complete";
 		public static function transitionComplete(stateName:String):StateMachineEvent{
@@ -22,8 +38,6 @@ package stateMachine
 			event.toState = stateName;
 			return event;
 		}
-		
-		public static const TRANSITION_DENIED:String = "transition denied";
 		
 		//----------------------------------
 		//  Payload

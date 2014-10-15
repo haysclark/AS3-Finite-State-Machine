@@ -2,24 +2,30 @@ package stateMachine
 {
 	public interface IState
 	{
-		function init(stateMachine:StateMachine):void
+		function get name():String;
+		function get from():Object;
 		
-		function allowTransitionFrom(stateName:String):Boolean
+		//Move
+		function allowTransitionFrom(stateName:String):Boolean;
 		
-		function get name():String
-		function get from():Object
+		function get enter():IEnter;
+		function get exit():IExit;
 		
-		function get enter():IEnter
-		function get exit():IExit
+		function get parentName():String;
 		
-		function get parent():IState
-		function set parent(parent:IState):void
-		function get parentName():String
-		function get parents():Array
-		function get children():Array
-		function set children(children:Array):void
-		function get root():IState
+		//function init(stateMachine:StateMachine):void;
+		//function get parent():IState;
+		//function set parent(parent:IState):void;
+		//function get parents():Array;
+		//function get children():Array;
+		//function set children(children:Array):void;
 		
-		function toString():String
+		/**
+		 * The root of a state is it's top level parent, if no parents then
+		 * the state 'root' is itself.
+		 */
+		//function get root():IState;
+		
+		function toString():String;
 	}
 }
