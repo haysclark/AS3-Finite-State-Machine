@@ -2,6 +2,6 @@ language: objective-c
 before_script:
   - curl 'http://fpdownload.macromedia.com/pub/flashplayer/installers/archive/fp_10.3.183.90_archive_mac_only.zip' >> fp_10.3.183.90_archive_mac_only.zip
   - unzip fp_10.3.183.90_archive_mac_only.zip
-  - mv fp10.1_debug_archive/10_3_r183_90_debug/flashplayer10_3r183_90_mac_sa_debug.app.zip flashplayer.zip
+  - mv fp_10.3.183.90_archive_mac_only/10_3_r183_90_debug/flashplayer10_3r183_90_mac_sa_debug.app.zip flashplayer.zip
   - unzip flashplayer.zip
 script: mvn test -DflashPlayer.command=Flash\ Player\ Debugger.app/Contents/MacOS/Flash\ Player\ Debugger
