@@ -7,7 +7,7 @@ package stateMachine
 		//----------------------------------
 		public static const NO_ENTER:IEnter = new NoopEnter();
 		public static const NO_EXIT:IExit = new NoopExit();
-		//public static const NO_PARENT:IState = null; // new NoParentState(null);
+		public static const NO_PARENT:String = null;
 		
 		public static const WILDCARD:String = "*";
 		
@@ -15,7 +15,7 @@ package stateMachine
 		//  vars
 		//----------------------------------
 		private var _name:String;
-		private var _from:Object;
+		private var _from:Array;
 		private var _enter:IEnter;
 		private var _exit:IExit;
 		
@@ -35,15 +35,18 @@ package stateMachine
 				stateData = {};
 			}
 			
-			_from = stateData.from;
-			if (!_from) {
-				_from = WILDCARD;
+			if(!stateData.from) {
+				_from = [WILDCARD];
+			} else if(stateData.from as Array) {
+				_from = stateData.from;
+			} else if (stateData.from as String ) {
+				_from = String(stateData.from).split(",");
 			}
 			
 			_enter = (stateData.enter) ? stateData.enter : NO_ENTER;
 			_exit = (stateData.exit) ? stateData.exit : NO_EXIT;
 			
-			_parentName = stateData.parent;
+			_parentName = (stateData.parent) ? stateData.parent : NO_PARENT;
 			//children = [];
 		}
 		
@@ -65,19 +68,19 @@ package stateMachine
 				parent = stateMachineInstance.getStateByName(nameOfParent);
 			}
 		}
-		**/
 		
 		public function allowTransitionFrom(stateName:String):Boolean {
 			return (_from == WILDCARD
 				|| _from.indexOf(stateName) != -1
 			);
 		}
+		**/
 		
 		public function get name():String {
 			return _name;
 		}
 		
-		public function get from():Object {
+		public function get from():Array {
 			return _from;
 		}
 			
@@ -91,6 +94,10 @@ package stateMachine
 		
 		public function toString():String {
 			return this.name;
+		}
+		
+		public function set parentName(name:String):void {
+			_parentName = name;
 		}
 		
 		public function get parentName():String {

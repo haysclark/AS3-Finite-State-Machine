@@ -3,10 +3,9 @@ package stateMachine
 	public interface IState
 	{
 		function get name():String;
-		function get from():Object;
+		function get from():Array;
 		
-		//Move
-		function allowTransitionFrom(stateName:String):Boolean;
+		//function allowTransitionFrom(stateName:String):Boolean;
 		
 		function get enter():IEnter;
 		function get exit():IExit;

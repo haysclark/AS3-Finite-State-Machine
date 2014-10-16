@@ -2,6 +2,7 @@ package stateMachine
 {
 	import flash.events.Event;
 	import flash.events.IEventDispatcher;
+	import flash.utils.Dictionary;
 	
 	import org.flexunit.asserts.assertEquals;
 	import org.flexunit.asserts.assertFalse;
@@ -82,22 +83,22 @@ package stateMachine
 		//
 		//--------------------------------------------------------------------------
 		[Test]
-		public function testConstNO_STATEIsExpectedValue():void {
-			var expected:String = "no state";
+		public function test_UNINITIAL_STATE_IsExpectedValue():void {
+			var expected:String = "uninitialState";
 			
-			assertEquals(expected, StateMachine.NO_STATE);
+			assertEquals(expected, StateMachine.UNINITIAL_STATE);
 		}
 		
 		[Test]
 		public function testStateShouldBeInitializedTo_NO_STATE():void {
-			var expected:String = StateMachine.NO_STATE;
+			var expected:String = StateMachine.UNINITIAL_STATE;
 			
 			assertEquals(expected, _instance.state);
 		}
 		
 		[Test]
 		public function testInitialStateShouldNoChangeForUnknownState():void {
-			var expected:String = StateMachine.NO_STATE;
+			var expected:String = StateMachine.UNINITIAL_STATE;
 			var unknownState:String = "foo";
 			
 			_instance.initialState = unknownState;
@@ -107,7 +108,7 @@ package stateMachine
 		
 		[Test]
 		public function testAddStateShouldNotChangeCurrentState():void {
-			var expected:String = StateMachine.NO_STATE;
+			var expected:String = StateMachine.UNINITIAL_STATE;
 			
 			_instance.addState(createPlayingState());
 			
@@ -308,6 +309,26 @@ package stateMachine
 			assertTrue(result);
 		}
 		
+		//
+		// _instance.addState(new State("idle", {enter: mockOnIdle, from:"attack"}));
+		// _instance.addState(new State("attack", {enter: mockOnAttack, from:"idle"}));
+		// _instance.addState(new State("melee attack", {parent:"attack", enter: mockOnMeleeAttack, exit: mockOnExitMeleeAttack, from:"attack"}));
+		// _instance.addState(new State("smash", {parent:"melle attack", enter: mockOnSmash}));
+		// _instance.addState(new State("punch", {parent:"melle attack", enter: mockOnPunch}));
+		// _instance.addState(new State("missle attack", {parent:"attack", enter: mockOnMissle}));
+		// _instance.addState(new State("die", {enter:mockOnDead, from:"attack", exit:mockOnDie}));
+		// 
+		// _instance.initialState = "idle"
+		//
+		[Test]
+		public function testCanChangeStateToShouldTrueWhenParentStateIncludesDestinationState():void {
+			setupQuakeStateExample();
+			
+			var result:Boolean = _instance.canChangeStateTo("smash");
+			
+			assertTrue(result);
+		}
+		
 		[Test]
 		public function testfindPathShouldForBothUnknownStates():void {
 			var unknownStartName:String = "foo";
@@ -497,35 +518,122 @@ package stateMachine
 			assertEquals(initialState.name, receivedEvent.currentState);
 		}
 		
-		//
-		// _instance.addState(new State("idle", {enter: mockOnIdle, from:"attack"}));
-		// _instance.addState(new State("attack", {enter: mockOnAttack, from:"idle"}));
-		// _instance.addState(new State("melee attack", {parent:"attack", enter: mockOnMeleeAttack, from:"attack"}));
-		// _instance.addState(new State("smash", {parent:"melle attack", enter: mockOnSmash}));
-		// _instance.addState(new State("punch", {parent:"melle attack", enter: mockOnPunch}));
-		// _instance.addState(new State("missle attack", {parent:"attack", enter: mockOnMissle}));
-		// _instance.addState(new State("die", {enter:mockOnDead, from:"attack", exit:mockOnDie}));
-		// 
-		// _instance.initialState = "idle"
-		//
+		[Test]
+		public function testGetParentByNameShouldReturnUnknownStateIfNotKnown():void {
+			var unknownStateName:String = "foo";
+			
+			var result:IState = _instance.getParentStateByName(unknownStateName);
+			
+			assertNotNull("expecting Null Pattern", result);
+			assertEquals(StateMachine.UNKNOWN_STATE, result);
+		}
+		
+		[Test]
+		public function testGetParentByNameShouldReturnUnknownParentStateIfParentNotKnown():void {
+			var knownChildState:IState = createChildState();
+			_instance.addState(knownChildState);
+			var knownChildStateName:String = knownChildState.name;
+			
+			var result:IState = _instance.getParentStateByName(knownChildStateName);
+			
+			assertNotNull("expecting Null Pattern", result);
+			assertEquals(StateMachine.UNKNOWN_PARENT_STATE, result);
+		}
+		
+		[Test]
+		public function testGetParentByNameShouldReturnParentStateOfChildState():void {
+			var childState:IState = createChildState();
+			_instance.addState(childState);
+			var knownChildStateName:String = childState.name;
+			var expectedParentState:IState = createParentState();
+			_instance.addState(expectedParentState);
+			
+			var result:IState = _instance.getParentStateByName(knownChildStateName);
+			
+			assertNotNull("expecting Null Pattern", result);
+			assertEquals(expectedParentState, result);
+		}
+		
+		[Test]
+		public function testGetParentByNameShouldReturnNoParentStateForChildWithNoParent():void {
+			var stateWithNoParent:IState = createFirstState();
+			_instance.addState(stateWithNoParent);
+			var stateWithNoParentName:String = stateWithNoParent.name;
+			
+			var result:IState = _instance.getParentStateByName(stateWithNoParentName);
+			
+			assertNotNull("expecting Null Pattern", result);
+			assertEquals(StateMachine.NO_PARENT_STATE, result);
+		}
+		
 		/**
 		[Test]
-		public function testChangeStateShouldCallExitStatesForParentsStates():void {
-			setupQuakeStateExample();
+		public function testGetRootStateNameByNameShouldReturnUnknwonStatesNameIfUnknownState():void {
+			var unknownStateName:String = "foo";
 			
-			assertEquals("not expected initial state", "idle", _instance.state);
-			_instance.changeState("smash");
-			verify(never()).that(mockOnAttack.enter(any()));
-			verify(never()).that(mockOnMeleeAttack.enter(any()));
-			verify().that(mockOnSmash.enter(any()));
-			assertEquals("not expected state after smash", "smash", _instance.state);
+			var result:String = _instance.getRootStateNameByName(unknownStateName);
 			
-			_instance.changeState("idle");
-			//verify(never()).that(mockOnAttack.enter(any()));
-			//verify(never()).that(mockOnMeleeAttack.enter(any()));
-			//verify().that(mockOnIdle.enter(any()));
-			assertEquals("not expected state after return to idle", "idle", _instance.state);
+			assertNotNull("expecting Null Pattern", result);
+			assertEquals(unknownStateName, result);
 		}
+		
+		[Test]
+		public function testGetRootStateNameByNameShouldReturnIfSelfAsRootIfNoParent():void {
+			var stateWithNoParent:IState = createParentState();
+			_instance.addState(stateWithNoParent);
+			var stateWithNoParentName:String = stateWithNoParent.name;
+			
+			var result:String = _instance.getRootStateNameByName(stateWithNoParentName);
+			
+			assertNotNull("expecting Null Pattern", result);
+			assertEquals(stateWithNoParentName, result);
+		}
+		
+		[Test]
+		public function testGetRootStateNameByNameShouldReturnParentsNameFromChild():void {
+			var parentState:IState = createParentState();
+			var childState:IState = createChildState();
+			_instance.addState(parentState);
+			_instance.addState(childState);
+			var expectedRoot:String = parentState.name;
+			
+			var result:String = _instance.getRootStateNameByName(childState.name);
+			
+			assertNotNull("expecting Null Pattern", result);
+			assertEquals(expectedRoot, result);
+		}
+		
+		[Test]
+		public function testGetRootStateNameByNameShouldReturnParentsNameFromGrandChild():void {
+			var parentState:IState = createParentState();
+			var childState:IState = createChildState();
+			var grandChildState:IState = createGrandChildState();
+			_instance.addState(parentState);
+			_instance.addState(childState);
+			_instance.addState(grandChildState);
+			var expectedRoot:String = parentState.name;
+			
+			var result:String = _instance.getRootStateNameByName(grandChildState.name);
+			
+			assertNotNull("expecting Null Pattern", result);
+			assertEquals(expectedRoot, result);
+		}
+		
+		[Test]
+		public function testGetRootStateNameByNameShouldReturnsFurthersKnownNode():void {
+			var parentState:IState = createParentState();
+			var childState:IState = createChildState();
+			var grandChildState:IState = createGrandChildState();
+			_instance.addState(parentState);
+			_instance.addState(grandChildState);
+			var expectedRoot:String = grandChildState.name;
+			
+			var result:String = _instance.getRootStateNameByName(grandChildState.name);
+			
+			assertNotNull("expecting Null Pattern", result);
+			assertEquals(expectedRoot, result);
+		}
+		**/
 		
 		[Test]
 		public function testChangeStateShouldBeAbleToNavigateToAChildState():void {
@@ -533,13 +641,33 @@ package stateMachine
 			
 			assertEquals("not expected initial state", "idle", _instance.state);
 			_instance.changeState("smash");
-			verify(never()).that(mockOnExitMeleeAttack.exit(any()));
 			assertEquals("not expected state after smash", "smash", _instance.state);
 			_instance.changeState("idle");
-			verify().that(mockOnExitMeleeAttack.exit(any()));
 			assertEquals("not expected state after return to idle", "idle", _instance.state);
 		}
-		**/
+		
+		[Test]
+		public function testChangeStateShouldBeAbleToNavigateToStateAndCallAllParentStateEnterCallbacks():void {
+			setupQuakeStateExample();
+			
+			assertEquals("not expected initial state", "idle", _instance.state);
+			_instance.changeState("smash");
+			verify().that(mockOnAttack.enter(any()));
+			verify().that(mockOnMeleeAttack.enter(any()));
+			verify().that(mockOnSmash.enter(any()));
+			_instance.changeState("idle");
+			assertEquals("not expected state after return to idle", "idle", _instance.state);
+		}
+		
+		[Test]
+		public function testChangeStateShouldCallExitStatesForParentsStates():void {
+			setupQuakeStateExample();
+			
+			_instance.changeState("smash");
+			verify(never()).that(mockOnExitMeleeAttack.exit(any()));
+			_instance.changeState("idle");
+			verify().that(mockOnExitMeleeAttack.exit(any()));
+		}
 		
 		//--------------------------------------------------------------------------
 		//
@@ -590,6 +718,52 @@ package stateMachine
 		}
 		
 		[Mock]
+		public var mockParentOnEnter:IEnter;
+		
+		[Mock]
+		public var mockParentOnExit:IExit;
+		
+		private function createParentState():IState {
+			var state:State = new State("parent", {
+				enter: mockParentOnEnter,
+				exit: mockParentOnExit
+			});
+			return state;
+		}
+		
+		[Mock]
+		public var mockChildOnEnter:IEnter;
+		
+		[Mock]
+		public var mockChildOnExit:IExit;
+		
+		private function createChildState():IState {
+			var state:State = new State("child", {
+				parent: "parent",
+				enter: mockChildOnEnter,
+				exit: mockChildOnExit,
+				from: ["first"]
+			});
+			return state;
+		}
+		
+		[Mock]
+		public var mockGrandChildOnEnter:IEnter;
+		
+		[Mock]
+		public var mockGrandChildOnExit:IExit;
+		
+		private function createGrandChildState():IState {
+			var state:State = new State("grandChild", {
+				parent: "child",
+				enter: mockGrandChildOnEnter,
+				exit: mockGrandChildOnExit,
+				from: ["first"]
+			});
+			return state;
+		}
+		
+		[Mock]
 		public var mockOnIdle:IEnter;
 		
 		[Mock]
@@ -627,8 +801,8 @@ package stateMachine
 			_instance.addState(new State("idle", {enter: mockOnIdle, from:"attack"}));
 			_instance.addState(new State("attack", {enter: mockOnAttack, from:"idle"}));
 			_instance.addState(new State("melee attack", {parent:"attack", enter: mockOnMeleeAttack, exit: mockOnExitMeleeAttack, from:"attack"}));
-			_instance.addState(new State("smash", {parent:"melle attack", enter: mockOnSmash}));
-			_instance.addState(new State("punch", {parent:"melle attack", enter: mockOnPunch}));
+			_instance.addState(new State("smash", {parent:"melee attack", enter: mockOnSmash}));
+			_instance.addState(new State("punch", {parent:"melee attack", enter: mockOnPunch}));
 			_instance.addState(new State("missle attack", {parent:"attack", enter: mockOnMissle}));
 			_instance.addState(new State("die", {enter:mockOnDead, from:"attack", exit:mockOnDie}));
 			
