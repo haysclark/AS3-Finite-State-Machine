@@ -1,5 +1,6 @@
 AS3-Finite-State-Machine
 ========================
+[![Build Status](https://travis-ci.org/haysclark/AS3-Finite-State-Machine.svg?branch=master)](https://travis-ci.org/haysclark/AS3-Finite-State-Machine)
 
 About
 -----
