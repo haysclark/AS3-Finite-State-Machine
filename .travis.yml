@@ -1,4 +1,6 @@
 language: objective-c
+jdk:
+  - oraclejdk8
 before_script:
   - curl 'http://fpdownload.macromedia.com/pub/flashplayer/installers/archive/fp_10.3.183.90_archive_mac_only.zip' >> fp_10.3.183.90_archive_mac_only.zip
   - unzip fp_10.3.183.90_archive_mac_only.zip
