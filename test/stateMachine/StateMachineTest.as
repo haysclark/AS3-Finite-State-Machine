@@ -2,7 +2,6 @@ package stateMachine
 {
 	import flash.events.Event;
 	import flash.events.IEventDispatcher;
-	import flash.utils.Dictionary;
 	
 	import org.flexunit.asserts.assertEquals;
 	import org.flexunit.asserts.assertFalse;
@@ -31,30 +30,6 @@ package stateMachine
 		public var mockState:IState;
 		
 		[Mock]
-		public var mockPlayStateEnterHandler:IEnter;
-		
-		[Mock]
-		public var mockPlayStateExitHandler:IExit;
-		
-		[Mock]
-		public var mockPauseEnterHandler:IEnter;
-		
-		[Mock]
-		public var mockStoppedEnterHandler:IEnter;
-		
-		[Mock]
-		public var mockFirstStateEnterHandler:IEnter;
-		
-		[Mock]
-		public var mockFirstStateExitHandler:IExit;
-		
-		[Mock]
-		public var mockSecondStateEnterHandler:IEnter;
-		
-		[Mock]
-		public var mockSecondStateExitHandler:IExit;
-		
-		[Mock]
 		public var mockEventDispatcher:IEventDispatcher;
 		
 		//----------------------------------
@@ -70,10 +45,12 @@ package stateMachine
 		[Before]
 		public function setUp():void {
 			_instance = new StateMachine();
+			_instance.init();
 		}
 		
 		[After]
 		public function tearDown():void {
+			_instance.destroy();
 			_instance = null;
 		}
 		
@@ -309,17 +286,6 @@ package stateMachine
 			assertTrue(result);
 		}
 		
-		//
-		// _instance.addState(new State("idle", {enter: mockOnIdle, from:"attack"}));
-		// _instance.addState(new State("attack", {enter: mockOnAttack, from:"idle"}));
-		// _instance.addState(new State("melee attack", {parent:"attack", enter: mockOnMeleeAttack, exit: mockOnExitMeleeAttack, from:"attack"}));
-		// _instance.addState(new State("smash", {parent:"melle attack", enter: mockOnSmash}));
-		// _instance.addState(new State("punch", {parent:"melle attack", enter: mockOnPunch}));
-		// _instance.addState(new State("missle attack", {parent:"attack", enter: mockOnMissle}));
-		// _instance.addState(new State("die", {enter:mockOnDead, from:"attack", exit:mockOnDie}));
-		// 
-		// _instance.initialState = "idle"
-		//
 		[Test]
 		public function testCanChangeStateToShouldTrueWhenParentStateIncludesDestinationState():void {
 			setupQuakeStateExample();
@@ -389,49 +355,29 @@ package stateMachine
 			assertEquals("expected tos incorrect", 1, result[1]);
 		}
 		
-		/**
 		[Test]
-		public function testfindPathShouldReturnExpectedForLongPath():void {
-			var startState:IState = createStoppedState();
-			var startStateName:String = startState.name;
-			_instance.addState(startState);
-			var middleState:IState = createPlayingState();
-			//middleState.parent = startState;
-			_instance.addState(middleState);
-			var endState:IState = createPausedState();
-			//endState.parent = middleState;
-			var endStateName:String = endState.name;
-			_instance.addState(endState);
+		public function testFindPathShouldReturnExpectedForLongPath():void {
+			setupQuakeStateExample();
 			
-			var result:Array = _instance.findPath(startStateName, endStateName);
+			var result:Array = _instance.findPath("idle", "punch");
 			
 			assertNotNull(result);
 			assertEquals(2, result.length);
-			assertEquals("expected froms incorrect", 0, result[0]);
-			assertEquals("expected tos incorrect", 2, result[1]);
+			assertEquals("expected froms incorrect", 1, result[0]);
+			assertEquals("expected tos incorrect", 3, result[1]);
 		}
 		
 		[Test]
-		public function testfindPathShouldReturnExpectedForLongPathReversed():void {
-			var startState:IState = createStoppedState();
-			var startStateName:String = startState.name;
-			_instance.addState(startState);
-			var middleState:IState = createPlayingState();
-			//middleState.parent = startState;
-			_instance.addState(middleState);
-			var endState:IState = createPausedState();
-			//endState.parent = middleState;
-			var endStateName:String = endState.name;
-			_instance.addState(endState);
+		public function testFindPathShouldReturnExpectedForLongPathReversed():void {
+			setupQuakeStateExample();
 			
-			var result:Array = _instance.findPath(endStateName, startStateName);
+			var result:Array = _instance.findPath("punch", "idle");
 			
 			assertNotNull(result);
 			assertEquals(2, result.length);
-			assertEquals("expected froms incorrect", 2, result[0]);
-			assertEquals("expected tos incorrect", 0, result[1]);
+			assertEquals("expected froms incorrect", 3, result[0]);
+			assertEquals("expected tos incorrect", 1, result[1]);
 		}
-		**/
 		
 		[Test]
 		public function testChangeStateShouldDoNothingForUnknownState():void {
@@ -566,75 +512,6 @@ package stateMachine
 			assertEquals(StateMachine.NO_PARENT_STATE, result);
 		}
 		
-		/**
-		[Test]
-		public function testGetRootStateNameByNameShouldReturnUnknwonStatesNameIfUnknownState():void {
-			var unknownStateName:String = "foo";
-			
-			var result:String = _instance.getRootStateNameByName(unknownStateName);
-			
-			assertNotNull("expecting Null Pattern", result);
-			assertEquals(unknownStateName, result);
-		}
-		
-		[Test]
-		public function testGetRootStateNameByNameShouldReturnIfSelfAsRootIfNoParent():void {
-			var stateWithNoParent:IState = createParentState();
-			_instance.addState(stateWithNoParent);
-			var stateWithNoParentName:String = stateWithNoParent.name;
-			
-			var result:String = _instance.getRootStateNameByName(stateWithNoParentName);
-			
-			assertNotNull("expecting Null Pattern", result);
-			assertEquals(stateWithNoParentName, result);
-		}
-		
-		[Test]
-		public function testGetRootStateNameByNameShouldReturnParentsNameFromChild():void {
-			var parentState:IState = createParentState();
-			var childState:IState = createChildState();
-			_instance.addState(parentState);
-			_instance.addState(childState);
-			var expectedRoot:String = parentState.name;
-			
-			var result:String = _instance.getRootStateNameByName(childState.name);
-			
-			assertNotNull("expecting Null Pattern", result);
-			assertEquals(expectedRoot, result);
-		}
-		
-		[Test]
-		public function testGetRootStateNameByNameShouldReturnParentsNameFromGrandChild():void {
-			var parentState:IState = createParentState();
-			var childState:IState = createChildState();
-			var grandChildState:IState = createGrandChildState();
-			_instance.addState(parentState);
-			_instance.addState(childState);
-			_instance.addState(grandChildState);
-			var expectedRoot:String = parentState.name;
-			
-			var result:String = _instance.getRootStateNameByName(grandChildState.name);
-			
-			assertNotNull("expecting Null Pattern", result);
-			assertEquals(expectedRoot, result);
-		}
-		
-		[Test]
-		public function testGetRootStateNameByNameShouldReturnsFurthersKnownNode():void {
-			var parentState:IState = createParentState();
-			var childState:IState = createChildState();
-			var grandChildState:IState = createGrandChildState();
-			_instance.addState(parentState);
-			_instance.addState(grandChildState);
-			var expectedRoot:String = grandChildState.name;
-			
-			var result:String = _instance.getRootStateNameByName(grandChildState.name);
-			
-			assertNotNull("expecting Null Pattern", result);
-			assertEquals(expectedRoot, result);
-		}
-		**/
-		
 		[Test]
 		public function testChangeStateShouldBeAbleToNavigateToAChildState():void {
 			setupQuakeStateExample();
@@ -674,6 +551,12 @@ package stateMachine
 		//  PRIVATE METHODS
 		//
 		//--------------------------------------------------------------------------
+		[Mock]
+		public var mockPlayStateEnterHandler:IEnter;
+		
+		[Mock]
+		public var mockPlayStateExitHandler:IExit;
+		
 		private function createPlayingState():IState {
 			var state:State = new State("playing", {
 				enter: mockPlayStateEnterHandler,
@@ -683,6 +566,9 @@ package stateMachine
 			return state;
 		}
 		
+		[Mock]
+		public var mockPauseEnterHandler:IEnter;
+		
 		private function createPausedState():IState {
 			var state:State = new State("paused", {
 				enter: mockPauseEnterHandler,
@@ -690,6 +576,9 @@ package stateMachine
 			});
 			return state;
 		}
+		
+		[Mock]
+		public var mockStoppedEnterHandler:IEnter;
 		
 		private function createStoppedState():IState {
 			var state:State = new State("stopped", {
@@ -699,6 +588,12 @@ package stateMachine
 			return state;
 		}
 		
+		[Mock]
+		public var mockFirstStateEnterHandler:IEnter;
+		
+		[Mock]
+		public var mockFirstStateExitHandler:IExit;
+		
 		private function createFirstState():IState {
 			var state:State = new State("first", {
 				enter: mockFirstStateEnterHandler,
@@ -707,6 +602,12 @@ package stateMachine
 			});
 			return state;
 		}
+		
+		[Mock]
+		public var mockSecondStateEnterHandler:IEnter;
+		
+		[Mock]
+		public var mockSecondStateExitHandler:IExit;
 		
 		private function createSecondState():IState {
 			var state:State = new State("second", {
@@ -794,9 +695,7 @@ package stateMachine
 		 * It's also possible to create hierarchical state machines using the argument "parent" in the addState method
 		 * This example shows the creation of a hierarchical state machine for the monster of a game
 		 * (Its a simplified version of the state machine used to control the AI in the original Quake game)
-		 * 
-		 * Todo(Hays), state machine breaks if a State references a 'parent' before it's added.
-		 */
+		 **/
 		private function setupQuakeStateExample():void {
 			_instance.addState(new State("idle", {enter: mockOnIdle, from:"attack"}));
 			_instance.addState(new State("attack", {enter: mockOnAttack, from:"idle"}));
@@ -816,7 +715,7 @@ package stateMachine
 		
 		private function createFromWildCardState():IState {
 			var state:State = new State("fromWildCardTest", {
-				from: "*"
+				from: State.WILDCARD
 			});
 			return state;
 		}

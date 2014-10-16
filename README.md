@@ -3,14 +3,12 @@ AS3-Finite-State-Machine
 
 About
 -----
-Project forked from AS3-State-Machine, by Cássio S. Antonio.
-Refactored and put under test by Hays Clark
+This package allows you to create simple and layered or hierarchical finite state machines.  State Machines are composed of states, and each state has (optional) callbacks for entering and exiting state. It's also possible to restrict the transition from states using the _from_ property.
 
-This package allows you to create simple and hierarchical StateMachines. 
-State Machines are composed of states, and each state has (optional) callbacks for entering and exiting state. It's also possible to restrict the transition from states using the from property.
+  * [Finite State Machines (FSM) ](http://ai-depot.com/FiniteStateMachines/FSM.html)
 
-Learn more about state machines and its applications on http://ai-depot.com/FiniteStateMachines/FSM.html
-
+Project forked from AS3-State-Machine, by Cássio S. Antonio.<br>
+Refactoring and UnitTested by Hays Clark
 
 Usage
 -----
@@ -36,8 +34,8 @@ It's also possible to create hierarchical state machines using the argument "par
 		 monsterSM.addState("idle",{enter:onIdle, from:"attack"})
 		 monsterSM.addState("attack",{enter:onAttack, from:"idle"})
 		 monsterSM.addState("melee attack",{parent:"atack", enter:onMeleeAttack, from:"attack"})
-		 monsterSM.addState("smash",{parent:"melle attack", enter:onSmash})
-		 monsterSM.addState("punch",{parent:"melle attack", enter:onPunch})
+		 monsterSM.addState("smash",{parent:"melee attack", enter:onSmash})
+		 monsterSM.addState("punch",{parent:"melee attack", enter:onPunch})
 		 monsterSM.addState("missle attack",{parent:"attack", enter:onMissle})
 		 monsterSM.addState("die",{enter:onDead, from:"attack", enter:onDie})
 		 
@@ -45,7 +43,7 @@ It's also possible to create hierarchical state machines using the argument "par
 		 
 License
 -------
-Copyright (c) 2014 Hays Clark
+Copyright (c) 2014 Hays Clark <br>
 Copyright (c) 2009-10 Cássio S. Antonio
 
 AS3-FSM is released under the Open Source MIT license, which gives you the possibility to use it and modify it in every circumstance.
