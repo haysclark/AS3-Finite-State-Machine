@@ -58,7 +58,7 @@
 			<type>swc</type>
 			<scope>system</scope>
 			<!-- this is the 1.4M5 swc -->
-			<systemPath>libs/mockito-1.4M5.swc</systemPath>
+			<systemPath>/home/travis/build/haysclark/AS3-Finite-State-Machine/libs/mockito-1.4M5.swc</systemPath>
 		</dependency>
 		<!-- Nice POM bundle available per SDK on Sonatype thanks to Flex-Mojos -->
 		<dependency >
