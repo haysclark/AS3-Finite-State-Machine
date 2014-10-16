@@ -1,4 +1,4 @@
-language: objective-c
+language: java
 jdk:
   - openjdk6
 before_script:
