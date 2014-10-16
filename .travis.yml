@@ -2,8 +2,5 @@ language: java
 jdk:
   - openjdk6
 before_script:
-  - curl 'http://fpdownload.macromedia.com/pub/flashplayer/installers/archive/fp_10.3.183.90_archive_mac_only.zip' >> fp_10.3.183.90_archive_mac_only.zip
-  - unzip fp_10.3.183.90_archive_mac_only.zip
-  - mv fp_10.3.183.90_archive_mac_only/10_3_r183_90_debug/flashplayer10_3r183_90_mac_sa_debug.app.zip flashplayer.zip
-  - unzip flashplayer.zip
+    - sh getFpFromArchive 'http://download.macromedia.com/pub/flashplayer/installers/archive/fp_11.7.700.225_archive.zip'
 script: mvn test -DflashPlayer.command=Flash\ Player\ Debugger.app/Contents/MacOS/Flash\ Player\ Debugger

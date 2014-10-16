@@ -16,4 +16,7 @@ bin-release/
 # Auto-Generated FlexUnit Test Suites and FlexUnit Settings
 .FlexUnitSettings/
 src/FlexUnitApplication.as
-src/FlexUnitCompilerApplication.as
+src/FlexUnitCompilerApplication.asFlash Player Debugger.app
+
+# Downloaded Flash Player used by Travis-CI
+Flash Player Debugger.app

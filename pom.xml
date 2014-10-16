@@ -53,12 +53,10 @@
 	<dependencies >
 		<dependency>
 			<groupId>org.mockito</groupId>
-			<artifactId>flex-mockito</artifactId>
-			<version>1.0</version>
+			<artifactId>mockito-flex</artifactId>
+			<version>1.4M5</version>
 			<type>swc</type>
-			<scope>system</scope>
-			<!-- this is the 1.4M5 swc -->
-			<systemPath>~/libs/mockito-1.4M5.swc</systemPath>
+			<scope>test</scope>
 		</dependency>
 		<!-- Nice POM bundle available per SDK on Sonatype thanks to Flex-Mojos -->
 		<dependency >
