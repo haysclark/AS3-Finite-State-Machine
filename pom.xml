@@ -49,7 +49,6 @@
 		</plugins >
 	</build >
 
-
 	<dependencies >
 		<dependency>
 			<groupId>flex.flexunit</groupId>
@@ -57,8 +56,6 @@
 			<version>1.0</version>
 			<type>swc</type>
 			<scope>test</scope>
-			<!-- this is the 1.4M5 swc -->
-			<systemPath>/home/travis/build/haysclark/AS3-Finite-State-Machine/libs/mockito-1.4M5.swc</systemPath>
 		</dependency>
 		<!-- Nice POM bundle available per SDK on Sonatype thanks to Flex-Mojos -->
 		<dependency >
