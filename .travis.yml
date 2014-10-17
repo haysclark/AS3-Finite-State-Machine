@@ -1,7 +1,9 @@
 language: java
 jdk:
-  - openjdk7
+  - openjdk6
 before_script:
+    - echo "getFpFromArchive"
     - sh getFpFromArchive 'http://download.macromedia.com/pub/flashplayer/installers/archive/fp_11.7.700.225_archive.zip'
+    - echo "setup Maven"
     - mvn install:install-file -Dfile=./libs/mockito-flex-1.4M5.swc -DgroupId=org.mockito -DartifactId=mockito-flex -Dversion=1.4M5 -Dpackaging=swc
 script: mvn test -DflashPlayer.command=Flash\ Player\ Debugger.app/Contents/MacOS/Flash\ Player\ Debugger
