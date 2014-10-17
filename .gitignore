@@ -20,3 +20,6 @@ src/FlexUnitCompilerApplication.asFlash Player Debugger.app
 
 # Downloaded Flash Player used by Travis-CI
 Flash Player Debugger.app
+
+# Maven/Flex-mojo output
+target/

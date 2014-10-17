@@ -7,8 +7,8 @@
 	<packaging>swf</packaging>
 	<name>AS3-Finite-State-Machine</name>
 	<properties>
-		<flex.sdk.version>3.5.0.12683</flex.sdk.version>
-		<flexmojos.version>3.6.1</flexmojos.version>
+		<flex.sdk.version>4.5.0.20967</flex.sdk.version>
+		<flexmojos.version>4.0-RC2</flexmojos.version>
 		<mockito-flex.version>1.4M5</mockito-flex.version>
 	</properties>
 	<build>
@@ -31,6 +31,10 @@
 					<includeTestFiles>
 						<includeTestFile>*Test.as</includeTestFile>
 					</includeTestFiles>
+					<keepAs3Metadatas>
+					   <metadata>Mock</metadata>
+					   <metadata>Rules</metadata>
+					</keepAs3Metadatas>
 				</configuration>
 				<dependencies>
 					<!-- Nice POM bundle available per SDK on Sonatype thanks to Flex-Mojos -->
@@ -45,6 +49,13 @@
 		</plugins>
 	</build>
 	<dependencies>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-flex</artifactId>
+			<version>${mockito-flex.version}</version>
+			<type>swc</type>
+			<scope>test</scope>
+		</dependency>
 		<!-- Nice POM bundle available per SDK on Sonatype thanks to Flex-Mojos -->
 		<dependency>
 			<groupId>com.adobe.flex.framework</groupId>
@@ -56,17 +67,18 @@
 		<dependency>
 			<groupId>com.adobe.flexunit</groupId>
 			<artifactId>flexunit</artifactId>
-			<version>4.0-rc-1</version>
+			<version>4.1.0-8</version>
 			<type>swc</type>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-flex</artifactId>
-			<version>${mockito-flex.version}</version>
+			<groupId>com.asunit</groupId>
+			<artifactId>asunit</artifactId>
+			<version>20071011</version>
 			<type>swc</type>
 			<scope>test</scope>
 		</dependency>
+		
 	</dependencies>
 	<!-- Ideally this would go into your ~/.m2/settings.xml file -->
 	<repositories>

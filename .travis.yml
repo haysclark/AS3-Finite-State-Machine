@@ -7,6 +7,7 @@ before_script:
   # http://helpx.adobe.com/flash-player/kb/archived-flash-player-versions.html
   - sh getFpFromArchive 'http://download.macromedia.com/pub/flashplayer/installers/archive/fp_11.7.700.225_archive.zip'
   # Install the Mockito-Flex SWC
+  - mvn install:install-file -Dfile=./libs/flexunit-4.1.0-8-as3_4.1.0.16076.swc -DgroupId=com.adobe.flexunit -DartifactId=flexunit -Dversion=4.1.0-8 -Dpackaging=swc
   - mvn install:install-file -Dfile=./libs/mockito-flex-1.4M5.swc -DgroupId=org.mockito -DartifactId=mockito-flex -Dversion=1.4M5 -Dpackaging=swc
 
 script: mvn test -DflashPlayer.command=Flash\ Player\ Debugger.app/Contents/MacOS/Flash\ Player\ Debugger
