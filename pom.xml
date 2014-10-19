@@ -1,16 +1,23 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>haysclark</groupId>
 	<artifactId>as3-finite-state-machine</artifactId>
 	<version>1.0.0</version>
 	<packaging>swf</packaging>
-	<name>AS3-Finite-State-Machine</name>
+	<name>AS3 Finite State Machine</name>
+
 	<properties>
-		<flex.sdk.version>4.1.0.16076</flex.sdk.version>
+		<flex.sdk.version>4.5.1.21328</flex.sdk.version>
 		<flexmojos.version>4.0-RC2</flexmojos.version>
+		<flexunit.version>4.1.0-8</flexunit.version>
 		<mockito-flex.version>1.4M5</mockito-flex.version>
 	</properties>
+
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<testSourceDirectory>test</testSourceDirectory>
@@ -21,24 +28,17 @@
 				<version>${flexmojos.version}</version>
 				<extensions>true</extensions>
 				<configuration>
+					<sourceFile>Main.as</sourceFile>
 					<compilerWarnings>
-    	                <warn-no-constructor>false</warn-no-constructor>
-	                </compilerWarnings>
-	                <debug>false</debug>
-					<testRunner>
-						<launcher>
-							<flashplayerCommand>${flashPlayer.command}</flashplayerCommand>
-						</launcher>
-					</testRunner>
+						<warn-no-constructor>false</warn-no-constructor>
+					</compilerWarnings>
+
+					<configurationReport>true</configurationReport>
 					<headlessServer>true</headlessServer>
 					<verboseStacktraces>true</verboseStacktraces>
 					<includeTestFiles>
 						<includeTestFile>*Test.as</includeTestFile>
 					</includeTestFiles>
-					<keepAs3Metadatas>
-					   <metadata>Mock</metadata>
-					   <metadata>Rules</metadata>
-					</keepAs3Metadatas>
 				</configuration>
 				<dependencies>
 					<!-- Nice POM bundle available per SDK on Sonatype thanks to Flex-Mojos -->
@@ -52,22 +52,24 @@
 			</plugin>
 		</plugins>
 	</build>
-	<dependencies>
+
+	<dependencies >
 		<!-- Nice POM bundle available per SDK on Sonatype thanks to Flex-Mojos -->
-		<dependency>
-			<groupId>com.adobe.flex.framework</groupId>
-			<artifactId>flex-framework</artifactId>
-			<version>${flex.sdk.version}</version>
-			<type>pom</type>
-		</dependency>
+		<dependency >
+			<groupId >com.adobe.flex.framework</groupId >
+			<artifactId >flex-framework</artifactId >
+			<version >${flex.sdk.version}</version >
+			<type >pom</type >
+		</dependency >
 		<!-- Based on testing library dependency specified, FlexMojos will know how to test your application -->
-		<dependency>
-			<groupId>com.adobe.flexunit</groupId>
-			<artifactId>flexunit</artifactId>
-			<version>4.1.0-8</version>
-			<type>swc</type>
-			<scope>test</scope>
-		</dependency>
+		<dependency >
+			<groupId >com.adobe.flexunit</groupId >
+			<artifactId >flexunit</artifactId >
+			<version >${flexunit.version}</version >
+			<type >swc</type >
+			<scope >test</scope >
+		</dependency >
+		<!-- Adding Mockito-Flex -->
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-flex</artifactId>
@@ -75,7 +77,16 @@
 			<type>swc</type>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+		<!-- Adding AsUnit, a dependancy of Mockito-Flex -->
+		<dependency>
+			<groupId>com.asunit</groupId>
+			<artifactId>asunit</artifactId>
+			<version>20071011</version>
+			<type>swc</type>
+			<scope>test</scope>
+		</dependency>
+	</dependencies >
+	
 	<!-- Ideally this would go into your ~/.m2/settings.xml file -->
 	<repositories>
 		<repository>
