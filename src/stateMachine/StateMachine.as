@@ -7,7 +7,6 @@ package stateMachine
 	
 	import stateMachine.event.TransitionCompleteEvent;
 	import stateMachine.event.TransitionDeniedEvent;
-	import stateMachine.param.EnterStateParams;
 	import stateMachine.param.ExitStateParams;
 	
 	public class StateMachine implements IStateMachine, IEventDispatcher
@@ -251,14 +250,11 @@ package stateMachine
 		//
 		//--------------------------------------------------------------------------
 		private function executeEnterCallbacksForTree(stateTo:String, oldState:String):void {
-			var enterCallbackEvent:EnterStateParams = EnterStateParams.enterCallback(stateTo, oldState);
-			
 			var parentStates:Array = getAllStatesChildToRootByName(stateTo);
 			var n:int = parentStates.length;
 			for (var j:int = n - 1; j >= 0; j--) {
 				var state:IState = parentStates[j];
-				enterCallbackEvent.currentState = state.name;
-				state.onEnter.enter(enterCallbackEvent);
+				state.onEnter.enter(stateTo, oldState, state.name);
 			}
 		}
 		

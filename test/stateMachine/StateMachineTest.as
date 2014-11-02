@@ -17,7 +17,6 @@ package stateMachine
 	
 	import stateMachine.event.TransitionCompleteEvent;
 	import stateMachine.event.TransitionDeniedEvent;
-	import stateMachine.param.EnterStateParams;
 	import stateMachine.param.ExitStateParams;
 	
 	import utils.DelegateAnswerTo;
@@ -154,25 +153,18 @@ package stateMachine
 			
 			_instance.initialState = initialState.name;
 			
-			verify().that(mockStoppedEnterHandler.enter(anyOf(EnterStateParams)));
+			verify().that(mockStoppedEnterHandler.enter(any(), any(), any()));
 		}
 		
 		[Test]
-		public function testInitialStateShouldCallEnterCallbackWithExpectedEvent():void {
-			var receivedEvent:EnterStateParams;
-			var callback:Function = function(event:EnterStateParams):void {
-				receivedEvent = event;
-			};
-			given(mockStoppedEnterHandler.enter(any()))
-				.will(new DelegateAnswerTo(callback));
+		public function testInitialStateShouldCallEnterCallbackWithExpectedArguments():void {
 			var initialState:IState = createStoppedState();
 			_instance.addState(initialState);
 			
 			_instance.initialState = initialState.name;
 			
-			assertNotNull(receivedEvent);
-			assertEquals(EnterStateParams.ENTER_CALLBACK, receivedEvent.type);
-			assertEquals(initialState.name, receivedEvent.toState);
+			verify()
+				.that(mockStoppedEnterHandler.enter(eq(initialState.name), any(), any()));
 		}
 		
 		[Test]
@@ -534,9 +526,11 @@ package stateMachine
 			
 			assertEquals("not expected initial state", "idle", _instance.state);
 			_instance.changeState("smash");
-			verify().that(mockOnAttack.enter(any()));
-			verify().that(mockOnMeleeAttack.enter(any()));
-			verify().that(mockOnSmash.enter(any()));
+			
+			verify().that(mockOnAttack.enter(eq("smash"), eq("idle"), eq("attack")));
+			verify().that(mockOnMeleeAttack.enter(eq("smash"), eq("idle"), eq("melee attack")));
+			verify().that(mockOnSmash.enter(eq("smash"), eq("idle"), eq("smash")));
+			
 			_instance.changeState("idle");
 			assertEquals("not expected state after return to idle", "idle", _instance.state);
 		}

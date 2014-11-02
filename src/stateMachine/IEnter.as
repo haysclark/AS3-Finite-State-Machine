@@ -1,9 +1,7 @@
 package stateMachine
 {
-	import stateMachine.param.EnterStateParams;
-
 	public interface IEnter
 	{
-		function enter(params:EnterStateParams):void;
+		function enter(toState:String, fromState:String, currentState:String):void;
 	}
 }
