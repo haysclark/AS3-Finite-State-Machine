@@ -1,7 +1,9 @@
 package stateMachine
 {
+	import stateMachine.param.ExitStateParams;
+
 	public interface IExit
 	{
-		function exit(event:StateMachineEvent):void;
+		function exit(params:ExitStateParams):void;
 	}
 }

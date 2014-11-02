@@ -1,7 +1,9 @@
 package stateMachine
 {
+	import stateMachine.param.EnterStateParams;
+
 	internal class NoopEnter implements IEnter {
-		public function enter(event:StateMachineEvent):void {
+		public function enter(params:EnterStateParams):void {
 			//
 		}
 	}

@@ -15,6 +15,11 @@ package stateMachine
 	import org.mockito.integrations.verify;
 	import org.mockito.integrations.flexunit4.MockitoRule;
 	
+	import stateMachine.event.TransitionCompleteEvent;
+	import stateMachine.event.TransitionDeniedEvent;
+	import stateMachine.param.EnterStateParams;
+	import stateMachine.param.ExitStateParams;
+	
 	import utils.DelegateAnswerTo;
 	import utils.EventDispatcherEventCollector;
 	
@@ -61,21 +66,21 @@ package stateMachine
 		//--------------------------------------------------------------------------
 		[Test]
 		public function test_UNINITIAL_STATE_IsExpectedValue():void {
-			var expected:String = "uninitialState";
+			var expected:String = "uninitializedState";
 			
-			assertEquals(expected, StateMachine.UNINITIAL_STATE);
+			assertEquals(expected, StateMachine.UNINITIALIZED_STATE);
 		}
 		
 		[Test]
 		public function testStateShouldBeInitializedTo_NO_STATE():void {
-			var expected:String = StateMachine.UNINITIAL_STATE;
+			var expected:String = StateMachine.UNINITIALIZED_STATE;
 			
 			assertEquals(expected, _instance.state);
 		}
 		
 		[Test]
 		public function testInitialStateShouldNoChangeForUnknownState():void {
-			var expected:String = StateMachine.UNINITIAL_STATE;
+			var expected:String = StateMachine.UNINITIALIZED_STATE;
 			var unknownState:String = "foo";
 			
 			_instance.initialState = unknownState;
@@ -85,7 +90,7 @@ package stateMachine
 		
 		[Test]
 		public function testAddStateShouldNotChangeCurrentState():void {
-			var expected:String = StateMachine.UNINITIAL_STATE;
+			var expected:String = StateMachine.UNINITIALIZED_STATE;
 			
 			_instance.addState(createPlayingState());
 			
@@ -149,13 +154,13 @@ package stateMachine
 			
 			_instance.initialState = initialState.name;
 			
-			verify().that(mockStoppedEnterHandler.enter(anyOf(StateMachineEvent)));
+			verify().that(mockStoppedEnterHandler.enter(anyOf(EnterStateParams)));
 		}
 		
 		[Test]
 		public function testInitialStateShouldCallEnterCallbackWithExpectedEvent():void {
-			var receivedEvent:StateMachineEvent;
-			var callback:Function = function(event:StateMachineEvent):void {
+			var receivedEvent:EnterStateParams;
+			var callback:Function = function(event:EnterStateParams):void {
 				receivedEvent = event;
 			};
 			given(mockStoppedEnterHandler.enter(any()))
@@ -166,7 +171,7 @@ package stateMachine
 			_instance.initialState = initialState.name;
 			
 			assertNotNull(receivedEvent);
-			assertEquals(StateMachineEvent.ENTER_CALLBACK, receivedEvent.type);
+			assertEquals(EnterStateParams.ENTER_CALLBACK, receivedEvent.type);
 			assertEquals(initialState.name, receivedEvent.toState);
 		}
 		
@@ -180,9 +185,9 @@ package stateMachine
 			_instance.initialState = initialState.name;
 			
 			assertEquals(1, collector.timesDispatched);
-			assertTrue("expecting StateMachineEvent event", collector.events[0] as StateMachineEvent);
-			assertEquals(StateMachineEvent.TRANSITION_COMPLETE, StateMachineEvent(collector.events[0]).type);
-			assertEquals(initialState.name, StateMachineEvent(collector.events[0]).toState);
+			assertTrue("expecting TransitionCompleteEvent event", collector.events[0] as TransitionCompleteEvent);
+			assertEquals(TransitionCompleteEvent.TRANSITION_COMPLETE, TransitionCompleteEvent(collector.events[0]).type);
+			assertEquals(initialState.name, TransitionCompleteEvent(collector.events[0]).toState);
 		}
 		
 		[Test]
@@ -420,10 +425,10 @@ package stateMachine
 			_instance.changeState(illegalStateName);
 			
 			assertEquals(1, collector.timesDispatched);
-			assertTrue("expecting StateMachineEvent", collector.events[0] as StateMachineEvent);
-			assertEquals(initialState.name, StateMachineEvent(collector.events[0]).fromState);
-			assertEquals(illegalState.name, StateMachineEvent(collector.events[0]).toState);
-			assertEquals(illegalState.from, StateMachineEvent(collector.events[0]).allowedStates);
+			assertTrue("expecting TransitionDeniedEvent", collector.events[0] as TransitionDeniedEvent);
+			assertEquals(initialState.name, TransitionDeniedEvent(collector.events[0]).fromState);
+			assertEquals(illegalState.name, TransitionDeniedEvent(collector.events[0]).toState);
+			assertEquals(illegalState.from, TransitionDeniedEvent(collector.events[0]).allowedStates);
 		}
 		
 		[Test]
@@ -437,7 +442,7 @@ package stateMachine
 			
 			_instance.changeState(nextStateName);
 			
-			verify().that(mockFirstStateExitHandler.exit(anyOf(StateMachineEvent)));
+			verify().that(mockFirstStateExitHandler.exit(anyOf(ExitStateParams)));
 		}
 		
 		[Test]
@@ -448,8 +453,8 @@ package stateMachine
 			var nextState:IState = createSecondState();
 			_instance.addState(nextState);
 			var nextStateName:String = nextState.name;
-			var receivedEvent:StateMachineEvent;
-			var callback:Function = function(event:StateMachineEvent):void {
+			var receivedEvent:ExitStateParams;
+			var callback:Function = function(event:ExitStateParams):void {
 				receivedEvent = event;
 			};
 			given(mockFirstStateExitHandler.exit(any()))
@@ -458,12 +463,12 @@ package stateMachine
 			_instance.changeState(nextStateName);
 		
 			assertNotNull(receivedEvent);
-			assertEquals(StateMachineEvent.EXIT_CALLBACK, receivedEvent.type);
+			assertEquals(ExitStateParams.EXIT_CALLBACK, receivedEvent.type);
 			assertEquals(initialState.name, receivedEvent.fromState);
 			assertEquals(nextState.name, receivedEvent.toState);
 			assertEquals(initialState.name, receivedEvent.currentState);
 		}
-		
+				 
 		[Test]
 		public function testGetParentByNameShouldReturnUnknownStateIfNotKnown():void {
 			var unknownStateName:String = "foo";
