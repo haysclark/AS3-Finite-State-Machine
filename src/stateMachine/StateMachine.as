@@ -7,7 +7,6 @@ package stateMachine
 	
 	import stateMachine.event.TransitionCompleteEvent;
 	import stateMachine.event.TransitionDeniedEvent;
-	import stateMachine.param.ExitStateParams;
 	
 	public class StateMachine implements IStateMachine, IEventDispatcher
 	{
@@ -132,14 +131,12 @@ package stateMachine
 			// call exit and enter callbacks (if they exits)
 			var path:Array = findPath(_state, stateTo);
 			if(path[0] > 0) { // hasFroms
-				var exitCallbackEvent:ExitStateParams = ExitStateParams.exitCallback(_state, stateTo, _state);
-				getStateByName(_state).onExit.exit(exitCallbackEvent);
+				getStateByName(_state).onExit.exit(_state, stateTo, _state);
 				var parentState:IState = getStateByName(_state);
 				for (var i:int = 0; i < path[0] - 1; i++) {
 					parentState = getParentStateByName(parentState.name); // parentState.parent;
 					if (parentState.onExit != null) {
-						exitCallbackEvent.currentState = parentState.name;
-						parentState.onExit.exit(exitCallbackEvent);
+						parentState.onExit.exit(_state, stateTo, parentState.name);
 					}
 				}
 			}

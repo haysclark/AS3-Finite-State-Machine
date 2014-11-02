@@ -1,9 +1,7 @@
 package stateMachine
 {
-	import stateMachine.param.ExitStateParams;
-
 	internal class NoopExit implements IExit {
-		public function exit(params:ExitStateParams):void {
+		public function exit(fromState:String, toState:String, currentState:String = null):void {
 			//
 		}
 	}

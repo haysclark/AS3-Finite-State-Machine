@@ -8,7 +8,6 @@ package stateMachine
 	import org.flexunit.asserts.assertNotNull;
 	import org.flexunit.asserts.assertTrue;
 	import org.mockito.integrations.any;
-	import org.mockito.integrations.anyOf;
 	import org.mockito.integrations.eq;
 	import org.mockito.integrations.given;
 	import org.mockito.integrations.never;
@@ -17,9 +16,7 @@ package stateMachine
 	
 	import stateMachine.event.TransitionCompleteEvent;
 	import stateMachine.event.TransitionDeniedEvent;
-	import stateMachine.param.ExitStateParams;
 	
-	import utils.DelegateAnswerTo;
 	import utils.EventDispatcherEventCollector;
 	
 	public class StateMachineTest
@@ -434,7 +431,8 @@ package stateMachine
 			
 			_instance.changeState(nextStateName);
 			
-			verify().that(mockFirstStateExitHandler.exit(anyOf(ExitStateParams)));
+			verify()
+				.that(mockFirstStateExitHandler.exit(any(), any(), any()));
 		}
 		
 		[Test]
@@ -445,20 +443,11 @@ package stateMachine
 			var nextState:IState = createSecondState();
 			_instance.addState(nextState);
 			var nextStateName:String = nextState.name;
-			var receivedEvent:ExitStateParams;
-			var callback:Function = function(event:ExitStateParams):void {
-				receivedEvent = event;
-			};
-			given(mockFirstStateExitHandler.exit(any()))
-				.will(new DelegateAnswerTo(callback));
 			
 			_instance.changeState(nextStateName);
-		
-			assertNotNull(receivedEvent);
-			assertEquals(ExitStateParams.EXIT_CALLBACK, receivedEvent.type);
-			assertEquals(initialState.name, receivedEvent.fromState);
-			assertEquals(nextState.name, receivedEvent.toState);
-			assertEquals(initialState.name, receivedEvent.currentState);
+			
+			verify()
+				.that(mockFirstStateExitHandler.exit(eq(initialState.name), eq(nextState.name), eq(initialState.name)));
 		}
 				 
 		[Test]
@@ -540,9 +529,12 @@ package stateMachine
 			setupQuakeStateExample();
 			
 			_instance.changeState("smash");
-			verify(never()).that(mockOnExitMeleeAttack.exit(any()));
+			verify(never())
+				.that(mockOnExitMeleeAttack.exit(any(), any(), any()));
+			
 			_instance.changeState("idle");
-			verify().that(mockOnExitMeleeAttack.exit(any()));
+			verify()
+				.that(mockOnExitMeleeAttack.exit(eq("smash"), eq("idle"), eq("melee attack")));	
 		}
 		
 		//--------------------------------------------------------------------------
