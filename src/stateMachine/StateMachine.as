@@ -1,20 +1,15 @@
 package stateMachine
 {
-	import flash.events.Event;
-	import flash.events.EventDispatcher;
-	import flash.events.IEventDispatcher;
 	import flash.utils.Dictionary;
 	
-	import stateMachine.event.TransitionCompleteEvent;
-	import stateMachine.event.TransitionDeniedEvent;
-	
-	public class StateMachine implements IStateMachine, IEventDispatcher
+	public class StateMachine implements IStateMachine
 	{
 		//----------------------------------
 		//  CONSTS
 		//----------------------------------
 		public static const UNINITIALIZED_STATE:String = "uninitializedState";
 		
+		// NOOPs
 		public static const UNKNOWN_STATE:IState = new State("unknown.state");
 		public static const UNKNOWN_PARENT_STATE:IState = new State("unknown.parent.state");
 		public static const NO_PARENT_STATE:IState = new State("no.parent.state");
@@ -23,9 +18,9 @@ package stateMachine
 		//  vars
 		//----------------------------------
 		/* @private */
-		private var _dispatcher:IEventDispatcher;
-		/* @private */
 		private var _nameToStates:Dictionary;
+		/* @private */
+		private var _observerCollection:ObserverTransitionCollection;
 		/* @private */
 		private var _state:String = UNINITIALIZED_STATE;
 		
@@ -36,7 +31,8 @@ package stateMachine
 		//--------------------------------------------------------------------------
 		public function init():void {
 			_nameToStates = new Dictionary();
-			_dispatcher = new EventDispatcher();
+			_observerCollection = new ObserverTransitionCollection();
+			_observerCollection.init();
 		}
 		
 		public function destroy():void {
@@ -45,11 +41,17 @@ package stateMachine
 				delete _nameToStates[key];
 			}
 			_nameToStates = null;
-			_dispatcher = null;
+			_observerCollection.destroy();
+			_observerCollection = null;
+			_state = null;
 		}
 		
-		public function setDispatcher(dispatcher:IEventDispatcher):void {
-			_dispatcher = dispatcher;
+		public function subscribe(observer:IObserverTransition):void {
+			_observerCollection.subscribe(observer);
+		}
+		
+		public function unsubscribe(observer:IObserverTransition):void {
+			_observerCollection.unsubscribe(observer);
 		}
 		
 		//----------------------------------
@@ -76,20 +78,23 @@ package stateMachine
 		public function set initialState(stateName:String):void {
 			if (_state == UNINITIALIZED_STATE && stateName in _nameToStates) {
 				_state = stateName;
-				executeEnterCallbacksForTree(stateName, null);
-				
-				var outEvent:TransitionCompleteEvent = TransitionCompleteEvent.transitionComplete(stateName, null);
-				dispatchEvent(outEvent);
+				executeEnterForStack(stateName, null);
+				notifyTransitionComplete(stateName, null);		
 			}
 		}
 		
 		/**
-		 *	Getters for the current state and for the Dictionary of states
+		 * Getters for the current state and for the Dictionary of states
 		 */
 		public function get state():String {
 			return _state;
 		}
 		
+		/**
+		 * Verifies if a state name is known by StateMachine.
+		 * 
+		 * @param stateName	The name of the State
+		 **/
 		public function hasStateByName(name:String):Boolean {
 			return (_nameToStates[name] != undefined);
 		}
@@ -123,57 +128,34 @@ package stateMachine
 			// If current state is not allowed to make this transition
 			if (!canChangeStateTo(stateTo)) {
 				//trace("[StateMachine] Transition to " + stateTo + " from " + state + " denied");
-				var outEvent:TransitionDeniedEvent = TransitionDeniedEvent.transitionDenied(_state, stateTo, IState(_nameToStates[stateTo]).from);
-				_dispatcher.dispatchEvent(outEvent);
+				notifyTransitionDenied(_state, stateTo, getAllFromsForStateByName(stateTo));
 				return;
 			}
 			
 			// call exit and enter callbacks (if they exits)
 			var path:Array = findPath(_state, stateTo);
 			if(path[0] > 0) { // hasFroms
-				getStateByName(_state).onExit.exit(_state, stateTo, _state);
-				var parentState:IState = getStateByName(_state);
-				for (var i:int = 0; i < path[0] - 1; i++) {
-					parentState = getParentStateByName(parentState.name); // parentState.parent;
-					if (parentState.onExit != null) {
-						parentState.onExit.exit(_state, stateTo, parentState.name);
-					}
-				}
+				executeExitForStack(_state, stateTo, path[0]);
 			}
 			
 			var oldState:String = _state;
 			_state = stateTo;
 			if (path[1] > 0) { // hasTos
-				executeEnterCallbacksForTree(stateTo, oldState);
+				executeEnterForStack(stateTo, oldState);
 			}
-			//trace("[StateMachine] State Changed to " + _state);
-			
-			// Transition is complete. dispatch TRANSITION_COMPLETE
-			var completeEvent:TransitionCompleteEvent = TransitionCompleteEvent.transitionComplete(stateTo, oldState);
-			dispatchEvent(completeEvent);
+			//trace("[StateMachine] State Changed to " + _state);			
+			notifyTransitionComplete(stateTo, oldState);
 		}
 		
-		//----------------------------------
-		//  IEventDispatcher
-		//----------------------------------
-		public function addEventListener(type:String, listener:Function, useCapture:Boolean = false, priority:int = 0, useWeakReference:Boolean = false):void {
-			_dispatcher.addEventListener(type, listener, useCapture, priority, useWeakReference);
-		}
-		
-		public function removeEventListener(type:String, listener:Function, useCapture:Boolean = false):void {
-			_dispatcher.removeEventListener(type, listener, useCapture);
-		}
-		
-		public function dispatchEvent(event:Event):Boolean {
-			return _dispatcher.dispatchEvent(event);
-		}
-		
-		public function hasEventListener(type:String):Boolean {
-			return _dispatcher.hasEventListener(type);
-		}
-		
-		public function willTrigger(type:String):Boolean {
-			return _dispatcher.willTrigger(type);
+		private function executeExitForStack(_state:String, stateTo:String, n:int):void {
+			getStateByName(_state).onExit.exit(_state, stateTo, _state);
+			var parentState:IState = getStateByName(_state);
+			for (var i:int = 0; i < n - 1; i++) {
+				parentState = getParentStateByName(parentState.name); // parentState.parent;
+				if (parentState.onExit != null) {
+					parentState.onExit.exit(_state, stateTo, parentState.name);
+				}
+			}
 		}
 		
 		//--------------------------------------------------------------------------
@@ -246,13 +228,21 @@ package stateMachine
 		//  PRIVATE METHODS
 		//
 		//--------------------------------------------------------------------------
-		private function executeEnterCallbacksForTree(stateTo:String, oldState:String):void {
+		private function executeEnterForStack(stateTo:String, oldState:String):void {
 			var parentStates:Array = getAllStatesChildToRootByName(stateTo);
 			var n:int = parentStates.length;
 			for (var j:int = n - 1; j >= 0; j--) {
 				var state:IState = parentStates[j];
 				state.onEnter.enter(stateTo, oldState, state.name);
 			}
+		}
+		
+		private function notifyTransitionComplete(toState:String, fromState:String):void {
+			_observerCollection.transitionComplete(toState, fromState);
+		}
+		
+		private function notifyTransitionDenied(fromState:String, toState:String, allowedFromStates:Array):void {
+			_observerCollection.transitionDenied(toState, fromState, allowedFromStates);
 		}
 		
 		private function getAllStatesChildToRootByName(name:String):Array {

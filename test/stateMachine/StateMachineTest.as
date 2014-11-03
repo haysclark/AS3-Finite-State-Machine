@@ -1,8 +1,5 @@
 package stateMachine
 {
-	import flash.events.Event;
-	import flash.events.IEventDispatcher;
-	
 	import org.flexunit.asserts.assertEquals;
 	import org.flexunit.asserts.assertFalse;
 	import org.flexunit.asserts.assertNotNull;
@@ -14,10 +11,7 @@ package stateMachine
 	import org.mockito.integrations.verify;
 	import org.mockito.integrations.flexunit4.MockitoRule;
 	
-	import stateMachine.event.TransitionCompleteEvent;
-	import stateMachine.event.TransitionDeniedEvent;
-	
-	import utils.EventDispatcherEventCollector;
+	import utils.DelegateAnswerTo;
 	
 	public class StateMachineTest
 	{	
@@ -31,7 +25,7 @@ package stateMachine
 		public var mockState:IState;
 		
 		[Mock]
-		public var mockEventDispatcher:IEventDispatcher;
+		public var mockObserver:IObserverTransition;
 		
 		//----------------------------------
 		//  vars
@@ -166,17 +160,14 @@ package stateMachine
 		
 		[Test]
 		public function testInitialStateShouldNotifyThatTheTransitionCompleted():void {
-			var collector:EventDispatcherEventCollector = setupEventCollector();
-			
+			_instance.subscribe(mockObserver);
 			var initialState:IState = createStoppedState();
 			_instance.addState(initialState);
 			
 			_instance.initialState = initialState.name;
 			
-			assertEquals(1, collector.timesDispatched);
-			assertTrue("expecting TransitionCompleteEvent event", collector.events[0] as TransitionCompleteEvent);
-			assertEquals(TransitionCompleteEvent.TRANSITION_COMPLETE, TransitionCompleteEvent(collector.events[0]).type);
-			assertEquals(initialState.name, TransitionCompleteEvent(collector.events[0]).toState);
+			verify()
+				.that(mockObserver.transitionComplete(eq(initialState.name), eq(null)));
 		}
 		
 		[Test]
@@ -188,30 +179,7 @@ package stateMachine
 			
 			// test should not error
 		}
-		
-		[Test]
-		public function testShouldWrapIEventDispatcher():void {
-			_instance.setDispatcher(mockEventDispatcher);
-			var listener:Function = function(event:Event):void {
-			};
-			
-			_instance.addEventListener("expected", listener, true, -1, true);
-			verify().that(mockEventDispatcher.addEventListener(eq("expected"), eq(listener), eq(true), eq(-1), eq(true)));
-			
-			_instance.removeEventListener("expected", listener, true);
-			verify().that(mockEventDispatcher.removeEventListener(eq("expected"), eq(listener), eq(true)));
-			
-			var event:Event = new Event("expected");
-			_instance.dispatchEvent(event);
-			verify().that(mockEventDispatcher.dispatchEvent(eq(event)));
-			
-			_instance.hasEventListener("expected");
-			verify().that(mockEventDispatcher.hasEventListener(eq("expected")));
-			
-			_instance.willTrigger("expected");
-			verify().that(mockEventDispatcher.willTrigger(eq("expected")));
-		}
-		
+				
 		[Test]
 		public function testGetStateByNameShouldUseNullPattern():void {
 			var unknownStateName:String = "foo";
@@ -401,23 +369,27 @@ package stateMachine
 		
 		[Test]
 		public function testChangeStateShouldNotifyTransitionDeniedForIllegalStateTransition():void {
-			_instance.setDispatcher(mockEventDispatcher);
+			_instance.subscribe(mockObserver);
 			var initialState:IState = createStoppedState();
 			_instance.addState(initialState);
 			_instance.initialState = initialState.name;
 			var illegalState:IState = createPausedState();
 			_instance.addState(illegalState);
 			var illegalStateName:String = illegalState.name;
-			// start listening to events after the setup
-			var collector:EventDispatcherEventCollector = new EventDispatcherEventCollector(mockEventDispatcher);
+			var allowedFromStatesResult:Array = null;
+			var answer:Function = function fname(toState:String, fromState:String, allowedFromStates:Array):void {
+				allowedFromStatesResult = allowedFromStates;
+			};
+			given(mockObserver.transitionDenied(eq(illegalState.name), eq(initialState.name), any()))
+				.will(new DelegateAnswerTo(answer));
 			
 			_instance.changeState(illegalStateName);
 			
-			assertEquals(1, collector.timesDispatched);
-			assertTrue("expecting TransitionDeniedEvent", collector.events[0] as TransitionDeniedEvent);
-			assertEquals(initialState.name, TransitionDeniedEvent(collector.events[0]).fromState);
-			assertEquals(illegalState.name, TransitionDeniedEvent(collector.events[0]).toState);
-			assertEquals(illegalState.from, TransitionDeniedEvent(collector.events[0]).allowedStates);
+			verify()
+				.that(mockObserver.transitionDenied(eq(illegalState.name), eq(initialState.name), any()));
+			assertNotNull(allowedFromStatesResult);
+			assertEquals(1, allowedFromStatesResult.length);
+			assertEquals(illegalState.from, allowedFromStatesResult[0]);
 		}
 		
 		[Test]
@@ -709,12 +681,6 @@ package stateMachine
 				from: State.WILDCARD
 			});
 			return state;
-		}
-		
-		private function setupEventCollector():EventDispatcherEventCollector {
-			given(mockEventDispatcher.hasEventListener(any())).willReturn(true);
-			_instance.setDispatcher(mockEventDispatcher);
-			return new EventDispatcherEventCollector(mockEventDispatcher);
 		}
 	}
 }
