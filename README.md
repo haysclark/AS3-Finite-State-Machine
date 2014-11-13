@@ -1,6 +1,5 @@
-AS3-Finite-State-Machine
+AS3-Hierarchical-State-Machine [![Build Status](https://travis-ci.org/haysclark/as3-hierarchical-state-machine.svg?branch=master)](https://travis-ci.org/haysclark/as3-hierarchical-state-machine)
 ========================
-[![Build Status](https://travis-ci.org/haysclark/AS3-Finite-State-Machine.svg?branch=master)](https://travis-ci.org/haysclark/AS3-Finite-State-Machine)
 
 About
 -----
