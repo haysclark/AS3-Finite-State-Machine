@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Get FlashPlayer Form Archive 1.0, 2014
+# Get FlashPlayer Form Archive 1.1, 2014
 #
 # Script downloads a Flash Archive zip, unzips the archive, located the needed
 # Mac OS Debug Flash Player, unzips that file and cleans up all but the Flash
@@ -35,17 +35,18 @@
 FP_ARCHIVE_PATH="fp_archive"
 FP_ARCHIVE_ZIP="fp_archive.zip"
 EXPECTED_ARG="<FlashPlayer Archile Url>"
-VERSION="1.0"
+VERSION="1.1"
+NAME=`basename "$0"`
 
 if [ "$#" -gt 1 ]; then
   echo "Too many arguments."
-  echo "Usage: $0 ${EXPECTED_ARG}"
+  echo "Usage: $NAME ${EXPECTED_ARG}"
   exit 1
 fi
 
 if [ "$1" = "" ]; then
 	echo "Missing required argument."
-	echo "Usage: $0 ${EXPECTED_ARG}"
+	echo "Usage: $NAME ${EXPECTED_ARG}"
 	exit 1
 fi
 
@@ -56,7 +57,7 @@ echo "[INFO] -------------------------------------------------------------------
 # Download the archive
 FP_ZIP_ARCHIVE_URL=$1
 echo "[INFO] Downloading: ${FP_ZIP_ARCHIVE_URL}"
-curl ${FP_ZIP_ARCHIVE_URL} >> ${FP_ARCHIVE_ZIP}
+curl -L ${FP_ZIP_ARCHIVE_URL} >> ${FP_ARCHIVE_ZIP}
 
 # Unzip archive
 echo "[INFO] Unzipping to: ${FP_ARCHIVE_PATH}"
