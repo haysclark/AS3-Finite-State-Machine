@@ -1,5 +1,14 @@
-AS3-Hierarchical-State-Machine [![Build Status](https://travis-ci.org/haysclark/as3-hierarchical-state-machine.svg?branch=master)](https://travis-ci.org/haysclark/as3-hierarchical-state-machine)
 ========================
+substate-as3 [![Build Status](https://travis-ci.org/haysclark/substate-as3.svg?branch=master)](https://travis-ci.org/haysclark/substate-as3)
+=================================
+A Haxe Hierarchical State Machine
+
+```
+           |_
+     _____|~ |______ ,.
+    ( --  subSTATE  `+|   
+  ~~~~~~~~~~~~~~~~~~~~~~~
+```
 
 About
 -----
